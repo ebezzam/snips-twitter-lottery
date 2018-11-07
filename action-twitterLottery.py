@@ -17,13 +17,13 @@ participants = dict()
 def user_start_game(hermes, intent_message):
     session_id = intent_message.session_id
     tts = "Starting game."
-    hermes.publish_continue_session(session_id, tts, [INTENT_STOP])
+    hermes.publish_end_session(session_id, tts)
 
 
 def user_stop_game(hermes, intent_message):
     session_id = intent_message.session_id
-    tts = "Starting game."
-    hermes.publish_continue_session(session_id, tts, [INTENT_WINNER])
+    tts = "Stopping game."
+    hermes.publish_end_session(session_id, tts)
 
 
 def get_winner(hermes, intent_message):
