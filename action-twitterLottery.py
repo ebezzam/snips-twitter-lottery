@@ -16,6 +16,7 @@ INTENT_WINNER = "bezzam:winner"
 INTENT_DELETE = "bezzam:delete_collection"
 INTENT_KEEP = "bezzam:keep_collection"
 INTENT_HOW_MANY = "bezzam:how_many_names"
+INTENT_NOT_YET = "bezzam:not_yet"
 
 # target handle and tweet
 twitter_handle = "realDonaldTrump"
@@ -106,11 +107,19 @@ def how_many(hermes, intent_message):
         if tweet_lottery[tweet_id].done:
             participants = tweet_lottery[tweet_id].participants
             n_participants = len(participants)
-            tts = "I've collected {} participants.".format(n_participants)
+            tts = "I've collected {} participants. Would you like to know the winner?".format(n_participants)
+            hermes.publish_continue_session(session_id, tts, [INTENT_WINNER, INTENT_NOT_YET])
         else:
             tts = "Sorry, I haven't finished collecting the participants."
+            hermes.publish_end_session(session_id, tts)
     except:
         tts = random.choice(tts_not_gathered)
+        hermes.publish_end_session(session_id, tts)
+
+
+def not_yet(hermes, intent_message):
+    session_id = intent_message.session_id
+    tts = "Alright, just let me know when you would like to know."
     hermes.publish_end_session(session_id, tts)
 
 
@@ -142,6 +151,7 @@ def get_winner(hermes, intent_message):
 with Hermes(MQTT_ADDR) as h:
     h.subscribe_intent(INTENT_DELETE, delete_names) \
      .subscribe_intent(INTENT_KEEP, keep_names) \
+     .subscribe_intent(INTENT_NOT_YET, not_yet) \
      .subscribe_intent(INTENT_HOW_MANY, how_many) \
      .subscribe_intent(INTENT_COLLECT, collect_names) \
      .subscribe_intent(INTENT_WINNER, get_winner).start()
