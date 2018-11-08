@@ -131,7 +131,9 @@ def get_winner(hermes, intent_message):
             participants = tweet_lottery[tweet_id].participants
             n_participants = len(participants)
             if n_participants > 0:
-                tts = "The winner is {}.".format(random.choice(participants))
+                winner = random.choice(participants)
+                tts = "The winner is {}.".format(winner)
+                tweet_lottery[tweet_id].participants.remove(winner)
                 hermes.publish_end_session(session_id, tts)
 
                 # tts = "The winner is {}. Would you like to delete the names?".format(random.choice(participants))
