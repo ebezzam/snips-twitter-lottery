@@ -15,11 +15,12 @@ INTENT_COLLECT = "bezzam:collect_names"
 INTENT_WINNER = "bezzam:winner"
 INTENT_DELETE = "bezzam:delete_collection"
 INTENT_KEEP = "bezzam:keep_collection"
+INTENT_HOW_MANY = "bezzam:how_many_names"
 
 # target handle and tweet
 twitter_handle = "realDonaldTrump"
 tweet_id = 1060194964351660033  # Trump tweet to test large number of RT
-rt_count = 100
+rt_count = 10
 
 # variables that contains the user credentials to access Twitter API
 access_token = api_keys.access_token
@@ -76,7 +77,11 @@ def delete_names(hermes, intent_message):
 
 def keep_names(hermes, intent_message):
     session_id = intent_message.session_id
-    tts = "Keeping names."
+    try:
+        participants = tweet_lottery[tweet_id].participants
+        tts = "Sure thing."
+    except:
+        tts = "I have not gathered any participants."
     hermes.publish_end_session(session_id, tts)
 
 
@@ -85,31 +90,50 @@ def collect_names(hermes, intent_message):
 
     tweet_lottery[tweet_id] = ExtractRetweetThread(twitter_handle, tweet_id, rt_count)
     tweet_lottery[tweet_id].start()
-    tts = "I've started collecting the usernames. This will take a couple minutes."
+    tts = "I've started collecting the usernames. This may take a couple minutes."
+    hermes.publish_end_session(session_id, tts)
+
+
+def how_many(hermes, intent_message):
+    session_id = intent_message.session_id
+
+    try:
+        if tweet_lottery[tweet_id].done:
+            participants = tweet_lottery[tweet_id].participants
+            n_participants = len(participants)
+            tts = "I've collected {} participants.".format(n_participants)
+        else:
+            tts = "I haven't finished collecting the participants."
+    except:
+        tts = "I have not gathered any participants."
     hermes.publish_end_session(session_id, tts)
 
 
 def get_winner(hermes, intent_message):
     session_id = intent_message.session_id
 
-    if tweet_lottery[tweet_id].done:
-        participants = tweet_lottery[tweet_id].participants
-        n_participants = len(participants)
-        if n_participants > 0:
-            tts = "I've collected {} participants. The winner is {}.".format(n_participants,
-                                                                             random.choice(participants))
-            hermes.publish_continue_session(session_id, tts, [INTENT_KEEP, INTENT_DELETE])
+    try:
+        if tweet_lottery[tweet_id].done:
+            participants = tweet_lottery[tweet_id].participants
+            n_participants = len(participants)
+            if n_participants > 0:
+                tts = "The winner is {}.".format(random.choice(participants))
+                hermes.publish_continue_session(session_id, tts, [INTENT_KEEP, INTENT_DELETE])
+            else:
+                tts = "There are no participants! Looks like no one wants a maker kit."
+                hermes.publish_end_session(session_id, tts)
         else:
-            tts = "There are no participants! Looks like no one wants a maker kit."
+            tts = "Sorry I am still collecting the participants."
             hermes.publish_end_session(session_id, tts)
-    else:
-        tts = "Sorry I am still collecting the participants."
+    except:
+        tts = "I do not have any gathered names."
         hermes.publish_end_session(session_id, tts)
 
 
 with Hermes(MQTT_ADDR) as h:
     h.subscribe_intent(INTENT_DELETE, delete_names) \
      .subscribe_intent(INTENT_KEEP, keep_names) \
+     .subscribe_intent(INTENT_HOW_MANY, how_many) \
      .subscribe_intent(INTENT_COLLECT, collect_names) \
      .subscribe_intent(INTENT_WINNER, get_winner).start()
 
