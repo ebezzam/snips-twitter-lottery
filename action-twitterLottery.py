@@ -11,9 +11,10 @@ MQTT_PORT = 1883
 MQTT_ADDR = "{}:{}".format(MQTT_IP_ADDR, str(MQTT_PORT))
 
 # intents
-INTENT_START = "bezzam:start_game"
+INTENT_COLLECT = "bezzam:collect_names"
 INTENT_WINNER = "bezzam:winner"
-INTENT_STOP = "bezzam:stop_game"
+INTENT_DELETE = "bezzam:delete_collection"
+INTENT_KEEP = "bezzam:keep_collection"
 
 # target handle and tweet
 twitter_handle = "realDonaldTrump"
@@ -62,13 +63,24 @@ class ExtractRetweetThread(threading.Thread):
         self.done = True
 
 
-def user_start_game(hermes, intent_message):
+def delete_names(hermes, intent_message):
     session_id = intent_message.session_id
-    tts = "Starting game."
+    try:
+        del tweet_lottery[tweet_id]
+        tts = "Deleting gathered usernames."
+    except:
+        tts = "No usernames to delete."
+        pass
     hermes.publish_end_session(session_id, tts)
 
 
-def user_collect(hermes, intent_message):
+def keep_names(hermes, intent_message):
+    session_id = intent_message.session_id
+    tts = "Keeping names."
+    hermes.publish_end_session(session_id, tts)
+
+
+def collect_names(hermes, intent_message):
     session_id = intent_message.session_id
 
     tweet_lottery[tweet_id] = ExtractRetweetThread(twitter_handle, tweet_id, rt_count)
@@ -76,42 +88,28 @@ def user_collect(hermes, intent_message):
     tts = "I've started collecting the usernames. This will take a couple minutes."
     hermes.publish_end_session(session_id, tts)
 
-    # # get people who retweeted
-    # results = api.retweets(tweet_id, count=100)
-    # screen_names = [r.user.screen_name for r in results]
-    #
-    # # check which ones are followers
-    # _part = []
-    # for sn in screen_names:
-    #     fship = api.show_friendship(source_screen_name=twitter_handle,
-    #                                 target_screen_name=sn)
-    #     if fship[0].followed_by:
-    #         _part.append(str(sn))
-    #
-    # try:
-    #     participants = _part
-    #     tts = "Stopping game. I've collected {} participants.".format(len(_part))
-    # except:
-    #     tts = "Please ask to start the game first!"
-
-    # hermes.publish_end_session(session_id, tts)
-
 
 def get_winner(hermes, intent_message):
     session_id = intent_message.session_id
 
     if tweet_lottery[tweet_id].done:
         participants = tweet_lottery[tweet_id].participants
-        tts = "I've collected {} participants. The winner is {}.".format(len(participants),
-                                                                         random.choice(participants))
-        del tweet_lottery[tweet_id]
+        n_participants = len(participants)
+        if n_participants > 0:
+            tts = "I've collected {} participants. The winner is {}.".format(n_participants,
+                                                                             random.choice(participants))
+            hermes.publish_continue_session(session_id, tts, )
+        else:
+            tts = "There are no participants! Looks like no one wants a maker kit."
+            hermes.publish_end_session(session_id, tts)
     else:
         tts = "Sorry I am still collecting the participants."
-    hermes.publish_end_session(session_id, tts)
+        hermes.publish_end_session(session_id, tts)
 
 
 with Hermes(MQTT_ADDR) as h:
-    h.subscribe_intent(INTENT_START, user_start_game) \
-     .subscribe_intent(INTENT_STOP, user_collect) \
+    h.subscribe_intent(INTENT_DELETE, delete_names) \
+     .subscribe_intent(INTENT_KEEP, keep_names) \
+     .subscribe_intent(INTENT_COLLECT, collect_names) \
      .subscribe_intent(INTENT_WINNER, get_winner).start()
 
