@@ -19,9 +19,9 @@ INTENT_HOW_MANY = "bezzam:how_many_names"
 INTENT_NOT_YET = "bezzam:not_yet"
 
 # target handle and tweet
-twitter_handle = "realDonaldTrump"
-tweet_id = 1060194964351660033  # Trump tweet to test large number of RT
-rt_count = 10
+twitter_handle = "snips"
+tweet_id = 1060462680597848064  # Trump tweet to test large number of RT
+rt_count = 100
 
 tts_not_gathered = ["Sorry I haven't gathered any participant names.",
                     "I don't have any names.",
@@ -107,7 +107,7 @@ def how_many(hermes, intent_message):
         if tweet_lottery[tweet_id].done:
             participants = tweet_lottery[tweet_id].participants
             n_participants = len(participants)
-            tts = "I've collected {} participants. Would you like to know the winner?".format(n_participants)
+            tts = "I've got {} participants. Would you like to know the winner?".format(n_participants)
             hermes.publish_continue_session(session_id, tts, [INTENT_WINNER, INTENT_NOT_YET])
         else:
             tts = "Sorry, I haven't finished collecting the participants."
