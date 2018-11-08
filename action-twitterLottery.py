@@ -22,6 +22,11 @@ twitter_handle = "realDonaldTrump"
 tweet_id = 1060194964351660033  # Trump tweet to test large number of RT
 rt_count = 10
 
+tts_not_gathered = ["Sorry I haven't gathered any participant names.",
+                    "I don't have any names.",
+                    "Sorry I don't have any usernames.",
+                    "Sorry I don't have any gathered names."]
+
 # variables that contains the user credentials to access Twitter API
 access_token = api_keys.access_token
 access_token_secret = api_keys.access_token_secret
@@ -68,9 +73,9 @@ def delete_names(hermes, intent_message):
     session_id = intent_message.session_id
     try:
         del tweet_lottery[tweet_id]
-        tts = "Deleting gathered usernames."
+        tts = "Sure thing, I'm deleting the gathered usernames."
     except:
-        tts = "No usernames to delete."
+        tts = "There are no usernames to delete."
         pass
     hermes.publish_end_session(session_id, tts)
 
@@ -81,7 +86,7 @@ def keep_names(hermes, intent_message):
         participants = tweet_lottery[tweet_id].participants
         tts = "Sure thing."
     except:
-        tts = "I have not gathered any participants."
+        tts = random.choice(tts_not_gathered)
     hermes.publish_end_session(session_id, tts)
 
 
@@ -103,9 +108,9 @@ def how_many(hermes, intent_message):
             n_participants = len(participants)
             tts = "I've collected {} participants.".format(n_participants)
         else:
-            tts = "I haven't finished collecting the participants."
+            tts = "Sorry, I haven't finished collecting the participants."
     except:
-        tts = "I have not gathered any participants."
+        tts = random.choice(tts_not_gathered)
     hermes.publish_end_session(session_id, tts)
 
 
@@ -118,15 +123,19 @@ def get_winner(hermes, intent_message):
             n_participants = len(participants)
             if n_participants > 0:
                 tts = "The winner is {}.".format(random.choice(participants))
-                hermes.publish_continue_session(session_id, tts, [INTENT_KEEP, INTENT_DELETE])
+                hermes.publish_end_session(session_id, tts)
+
+                # tts = "The winner is {}. Would you like to delete the names?".format(random.choice(participants))
+                # hermes.publish_continue_session(session_id, tts, [INTENT_KEEP, INTENT_DELETE])
+
             else:
                 tts = "There are no participants! Looks like no one wants a maker kit."
                 hermes.publish_end_session(session_id, tts)
         else:
-            tts = "Sorry I am still collecting the participants."
+            tts = "Sorry I'm still collecting the participants."
             hermes.publish_end_session(session_id, tts)
     except:
-        tts = "I do not have any gathered names."
+        tts = random.choice(tts_not_gathered)
         hermes.publish_end_session(session_id, tts)
 
 
