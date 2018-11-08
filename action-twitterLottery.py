@@ -23,6 +23,8 @@ twitter_handle = "snips"
 tweet_id = 1060462680597848064  # Trump tweet to test large number of RT
 rt_count = 100
 
+pre_event = ["PatrickBo69", "OttLegalRebels", "Nicochan33"]
+
 tts_not_gathered = ["Sorry I haven't gathered any participant names.",
                     "I don't have any names.",
                     "Sorry I don't have any usernames.",
@@ -62,10 +64,11 @@ class ExtractRetweetThread(threading.Thread):
 
         # check which ones are followers
         for sn in self.rt_screen_names:
-            fship = api.show_friendship(source_screen_name=self.handle,
-                                        target_screen_name=sn)
-            if fship[0].followed_by:
-                self.participants.append(str(sn))
+            if sn not in pre_event:
+                fship = api.show_friendship(source_screen_name=self.handle,
+                                            target_screen_name=sn)
+                if fship[0].followed_by:
+                    self.participants.append(str(sn))
 
         self.done = True
 
@@ -107,8 +110,12 @@ def how_many(hermes, intent_message):
         if tweet_lottery[tweet_id].done:
             participants = tweet_lottery[tweet_id].participants
             n_participants = len(participants)
-            tts = "I've got {} participants. Would you like to know the winner?".format(n_participants)
-            hermes.publish_continue_session(session_id, tts, [INTENT_WINNER, INTENT_NOT_YET])
+            if n_participants > 0:
+                tts = "I've got {} participants. Would you like to know the winner?".format(n_participants)
+                hermes.publish_continue_session(session_id, tts, [INTENT_WINNER, INTENT_NOT_YET])
+            else:
+                tts = "There are no participants! Looks like no one wants a maker kit."
+                hermes.publish_end_session(session_id, tts)
         else:
             tts = "Sorry, I haven't finished collecting the participants."
             hermes.publish_end_session(session_id, tts)
