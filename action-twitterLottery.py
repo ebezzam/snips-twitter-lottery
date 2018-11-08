@@ -98,7 +98,7 @@ def get_winner(hermes, intent_message):
         if n_participants > 0:
             tts = "I've collected {} participants. The winner is {}.".format(n_participants,
                                                                              random.choice(participants))
-            hermes.publish_continue_session(session_id, tts, )
+            hermes.publish_continue_session(session_id, tts, [INTENT_KEEP, INTENT_DELETE])
         else:
             tts = "There are no participants! Looks like no one wants a maker kit."
             hermes.publish_end_session(session_id, tts)
