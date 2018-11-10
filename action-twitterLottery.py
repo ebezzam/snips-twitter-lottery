@@ -83,7 +83,7 @@ class ExtractRetweetThread(threading.Thread):
 def delete_names(hermes, intent_message):
     session_id = intent_message.session_id
     try:
-        del tweet_lottery[tweet_id]
+        del tweet_lottery[hermes.tweet_id]
         tts = "Sure thing, I'm deleting the gathered usernames."
     except:
         tts = "There are no usernames to delete."
@@ -94,7 +94,7 @@ def delete_names(hermes, intent_message):
 def keep_names(hermes, intent_message):
     session_id = intent_message.session_id
     try:
-        participants = tweet_lottery[tweet_id].participants
+        participants = tweet_lottery[hermes.tweet_id].participants
         tts = "Sure thing."
     except:
         tts = random.choice(tts_not_gathered)
@@ -104,8 +104,8 @@ def keep_names(hermes, intent_message):
 def collect_names(hermes, intent_message):
     session_id = intent_message.session_id
 
-    tweet_lottery[tweet_id] = ExtractRetweetThread(hermes.api, hermes.twitter_handle, hermes.tweet_id, RT_COUNT)
-    tweet_lottery[tweet_id].start()
+    tweet_lottery[hermes.tweet_id] = ExtractRetweetThread(hermes.api, hermes.twitter_handle, hermes.tweet_id, RT_COUNT)
+    tweet_lottery[hermes.tweet_id].start()
     tts = "I've started collecting the usernames. This may take a couple minutes."
     hermes.publish_end_session(session_id, tts)
 
@@ -114,8 +114,8 @@ def how_many(hermes, intent_message):
     session_id = intent_message.session_id
 
     try:
-        if tweet_lottery[tweet_id].done:
-            participants = tweet_lottery[tweet_id].participants
+        if tweet_lottery[hermes.tweet_id].done:
+            participants = tweet_lottery[hermes.tweet_id].participants
             n_participants = len(participants)
             if n_participants > 1:
                 tts = "I've got {} participants. Would you like to know the winner?".format(n_participants)
@@ -144,13 +144,13 @@ def get_winner(hermes, intent_message):
     session_id = intent_message.session_id
 
     try:
-        if tweet_lottery[tweet_id].done:
-            participants = tweet_lottery[tweet_id].participants
+        if tweet_lottery[hermes.tweet_id].done:
+            participants = tweet_lottery[hermes.tweet_id].participants
             n_participants = len(participants)
             if n_participants > 0:
                 winner = random.choice(participants)
                 tts = "The winner is {}.".format(winner)
-                tweet_lottery[tweet_id].participants.remove(winner)
+                tweet_lottery[hermes.tweet_id].participants.remove(winner)
                 hermes.publish_end_session(session_id, tts)
 
             else:
