@@ -1,7 +1,7 @@
 # Twitter Lottery with a Voice Assistant!
 
 Select a winner randomly from RT'ers (of a specified tweet) that are also followers (or a specified account).
-When deploying the assistant with SAM, you will be asked to specify the following "end-user" parameters:
+When deploying the assistant with [SAM](https://snips.gitbook.io/getting-started/installation), you will be asked to specify the following "end-user" parameters:
 - Twitter handle, which participants in the lottery should follow.
 - Tweet ID, which participants should RT. This can be obtained by clicking on the desired tweet from Twitter and taking the integer sequence at the end of the url, e.g. `1060462680597848064` for [this tweet](https://twitter.com/snips/status/1060462680597848064).
 - Access token.
