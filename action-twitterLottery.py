@@ -68,7 +68,7 @@ class ExtractRetweetThread(threading.Thread):
         # get people who retweeted
         results = self.api.retweets(self.tweet, count=self.rt_count)
         self.rt_screen_names = [r.user.screen_name for r in results]
-
+        
         # check which ones are followers
         for sn in self.rt_screen_names:
             if sn not in pre_event:
@@ -76,7 +76,6 @@ class ExtractRetweetThread(threading.Thread):
                                                  target_screen_name=sn)
                 if fship[0].followed_by:
                     self.participants.append(str(sn))
-
         self.done = True
 
 
@@ -103,7 +102,7 @@ def keep_names(hermes, intent_message):
 
 def collect_names(hermes, intent_message):
     session_id = intent_message.session_id
-
+    
     tweet_lottery[hermes.tweet_id] = ExtractRetweetThread(hermes.api, hermes.twitter_handle, hermes.tweet_id, RT_COUNT)
     tweet_lottery[hermes.tweet_id].start()
     tts = "I've started collecting the usernames. This may take a couple minutes."
