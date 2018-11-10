@@ -14,4 +14,4 @@ You can obtain your own by creating a Twitter developer [here](https://developer
 After making an App, you should find a tab called "Keys and tokens" where you can obtain your unique tokens and keys.
 Under "Step 1" of [this article](http://adilmoujahid.com/posts/2014/07/twitter-analytics/), you can see more info about getting Twitter API keys.
 
-You can find the App on the Snips Console [here](https://console.snips.ai/store/en/skill_g7pX7N2oM87).
+You can find this Twitter Lottery App on the Console riiiight over [here](https://console.snips.ai/store/en/skill_g7pX7N2oM87). It was used to give away two free [Maker Kits](https://makers.snips.ai/kit/) at [this event](https://www.hardwarepioneers.com/2018-events/l-the-impact-of-ai-and-ml-on-iot).
