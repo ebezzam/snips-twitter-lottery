@@ -25,7 +25,8 @@ INTENT_NOT_YET = "bezzam:not_yet"
 RT_COUNT = 100      # max is 100
 
 # remove some participants from contention
-pre_event = []
+BLACKLIST = []
+WHITELIST = []
 
 # store participants
 tweet_lottery = dict()
@@ -71,11 +72,13 @@ class ExtractRetweetThread(threading.Thread):
         
         # check which ones are followers
         for sn in self.rt_screen_names:
-            if sn not in pre_event:
+            if sn not in BLACKLIST:
                 fship = self.api.show_friendship(source_screen_name=self.handle,
                                                  target_screen_name=sn)
                 if fship[0].followed_by:
                     self.participants.append(str(sn))
+        self.participants += WHITELIST
+
         self.done = True
 
 
@@ -105,7 +108,7 @@ def collect_names(hermes, intent_message):
     
     tweet_lottery[hermes.tweet_id] = ExtractRetweetThread(hermes.api, hermes.twitter_handle, hermes.tweet_id, RT_COUNT)
     tweet_lottery[hermes.tweet_id].start()
-    tts = "I've started collecting the usernames. This may take a couple minutes."
+    tts = "I've started collecting the usernames."
     hermes.publish_end_session(session_id, tts)
 
 
