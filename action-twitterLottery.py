@@ -7,6 +7,11 @@ import threading
 import io
 import sys
 
+"""
+TODO:
+- intent for collecting and setting blacklist
+"""
+
 CONFIGURATION_ENCODING_FORMAT = "utf-8"
 CONFIG_INI = "config.ini"
 
@@ -26,6 +31,8 @@ RT_COUNT = 100      # max is 100
 
 # remove some participants from contention
 BLACKLIST = []
+
+# add those who may not have Twitter
 WHITELIST = []
 
 # store participants
@@ -54,12 +61,13 @@ def read_configuration_file(configuration_file):
 
 class ExtractRetweetThread(threading.Thread):
 
-    def __init__(self, api, handle, tweet, rt_count):
+    def __init__(self, api, handle, tweet, rt_count, twitter_weight):
         super(ExtractRetweetThread, self).__init__()
         self.api = api
         self.handle = handle
         self.tweet = tweet
         self.rt_count = rt_count
+        self.twitter_weight = twitter_weight
         self.rt_screen_names = None
         self.participants = []
         self.done = False
@@ -76,8 +84,11 @@ class ExtractRetweetThread(threading.Thread):
                 fship = self.api.show_friendship(source_screen_name=self.handle,
                                                  target_screen_name=sn)
                 if fship[0].followed_by:
-                    self.participants.append(str(sn))
+                    for i in range(self.twitter_weight):
+                        self.participants.append(str(sn))
         self.participants += WHITELIST
+
+        print(self.participants)
 
         self.done = True
 
@@ -106,7 +117,13 @@ def keep_names(hermes, intent_message):
 def collect_names(hermes, intent_message):
     session_id = intent_message.session_id
     
-    tweet_lottery[hermes.tweet_id] = ExtractRetweetThread(hermes.api, hermes.twitter_handle, hermes.tweet_id, RT_COUNT)
+    tweet_lottery[hermes.tweet_id] = ExtractRetweetThread(
+        hermes.api, 
+        hermes.twitter_handle, 
+        hermes.tweet_id, 
+        RT_COUNT,
+        hermes.twitter_weight
+    )
     tweet_lottery[hermes.tweet_id].start()
     tts = "I've started collecting the usernames."
     hermes.publish_end_session(session_id, tts)
@@ -170,6 +187,8 @@ if __name__ == "__main__":
 
     config = read_configuration_file(CONFIG_INI)
 
+    print(config)
+
     # authenticate and connect
     auth = tweepy.OAuthHandler(config["secret"]["consumer_key"], config["secret"]["consumer_secret"])
     auth.set_access_token(config["secret"]["access_token"], config["secret"]["access_token_secret"])
@@ -179,6 +198,7 @@ if __name__ == "__main__":
         h.api = api
         h.twitter_handle = config["secret"]["twitter_handle"]
         h.tweet_id = config["secret"]["tweet_id"]
+        h.twitter_weight = int(config["secret"]["twitter_weight"])
         h.subscribe_intent(INTENT_DELETE, delete_names) \
          .subscribe_intent(INTENT_KEEP, keep_names) \
          .subscribe_intent(INTENT_NOT_YET, not_yet) \
